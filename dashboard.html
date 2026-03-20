@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flux Warehouse - Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0c12;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ─────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      padding: 0 2rem;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #fff;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #00ff88 0%, #0099ff 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .welcome-text {
+      font-size: 0.875rem;
+      color: #94a3b8;
+    }
+
+    .welcome-text span {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    /* ── MAIN CONTENT ─────────────────────── */
+    .main-content {
+      flex: 1;
+      padding: 4rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .page-subtitle {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      margin-bottom: 4rem;
+      text-align: center;
+    }
+
+    .cards-container {
+      display: flex;
+      gap: 2rem;
+      max-width: 1000px;
+      width: 100%;
+      perspective: 1000px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ── CARDS ─────────────────────── */
+    .card {
+      flex: 1;
+      min-width: 300px;
+      max-width: 450px;
+      background: rgba(20, 26, 40, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      group: card;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      background: rgba(30, 38, 56, 0.6);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+      transition: all 0.4s;
+    }
+
+    .card.gps .card-icon {
+      color: #60a5fa;
+      text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+    }
+
+    .card.vision .card-icon {
+      color: #00ff88;
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+    }
+
+    .card:hover .card-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .card.gps:hover .card-icon {
+      background: rgba(96, 165, 250, 0.1);
+      box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.3);
+    }
+
+    .card.vision:hover .card-icon {
+      background: rgba(0, 255, 136, 0.1);
+      box-shadow: inset 0 0 0 1px rgba(0, 255, 136, 0.3);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-desc {
+      font-size: 1rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      flex: 1;
+    }
+
+    .card-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s;
+    }
+
+    .card-btn svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.3s;
+    }
+
+    .card.gps:hover .card-btn {
+      background: #60a5fa;
+      border-color: #60a5fa;
+      color: #1e3a8a;
+    }
+
+    .card.vision:hover .card-btn {
+      background: #00ff88;
+      border-color: #00ff88;
+      color: #004d29;
+    }
+
+    .card:hover .card-btn svg {
+      transform: translateX(4px);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Auth Check Script MUST run immediately -->
+  <script>
+    if (sessionStorage.getItem('flux_auth') !== 'true') {
+      window.location.href = '/login.html';
+    }
+  </script>
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      Flux Warehouse
+    </div>
+    <div class="user-info">
+      <div class="welcome-text">Operator: <span id="usernameDisplay">User</span></div>
+      <button class="btn-logout" id="btnLogout">Sign Out</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1 class="page-title">Select Operating Mode</h1>
+    <p class="page-subtitle">Choose a visualization interface for the digital twin simulation.</p>
+
+    <div class="cards-container">
+      <!-- GPS Card -->
+      <a href="/index.html" class="card gps">
+        <div class="card-icon">🛰️</div>
+        <h2 class="card-title">GPS / Main Simulation</h2>
+        <p class="card-desc">Overview of the entire warehouse floor. View the excavator crane, pathfinding commands, and conveyor status.</p>
+        <div class="card-btn">
+          Launch GPS View
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </div>
+      </a>
+
+      <!-- Vision Card -->
+      <a href="/vision.html" class="card vision">
+        <div class="card-icon">👁️</div>
+        <h2 class="card-title">Vision Scanner</h2>
+        <p class="card-desc">Detailed optical inspection interface. Analyze material purity, volume, particle count, and surface temperature.</p>
+        <div class="card-btn">
+          Launch Vision View
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </div>
+      </a>
+      
+      <!-- Dual View Card (Optional, we made it, so let's link it!) -->
+      <a href="/dual.html" class="card" style="margin-top:20px; min-width: 100%;">
+        <div class="card-icon" style="color: #c084fc; text-shadow: 0 0 20px rgba(192, 132, 252, 0.5);">🎛️</div>
+        <h2 class="card-title">Dual split-screen</h2>
+        <p class="card-desc">Advanced mode. View both the GPS overview and the Vision Scanner simultaneously.</p>
+        <div class="card-btn" style="background: rgba(192, 132, 252, 0.1); color: #c084fc; border-color: rgba(192, 132, 252, 0.3);">
+          Launch Dual View
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </div>
+      </a>
+    </div>
+  </main>
+
+  <script>
+    // Set username
+    const user = sessionStorage.getItem('flux_user');
+    if (user) {
+      document.getElementById('usernameDisplay').textContent = user;
+    }
+
+    // Logout
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      sessionStorage.removeItem('flux_auth');
+      sessionStorage.removeItem('flux_user');
+      window.location.href = '/login.html';
+    });
+  </script>
+</body>
+</html>

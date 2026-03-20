@@ -1,0 +1,1 @@
+src/control/VisionCraneController.ts(60,13): error TS6133: 'generateNewOrder' is declared but its value is never read.

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vision system - Flux Warehouse</title>
+  <script>
+    if (sessionStorage.getItem('flux_auth') !== 'true') {
+      window.location.href = '/login.html';
+    }
+  </script>
+</head>
+
+<body>
+  <div id="app">
+    <header class="header">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="/dashboard.html" style="color: #00ff88; text-decoration: none; font-size: 0.875rem;">&larr; Dashboard</a>
+        <h1>Vision system - Flux Warehouse</h1>
+      </div>
+      <div class="status-bar">
+        Crane Status: <span id="craneStateTxt" class="badge">IDLE</span>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <!-- Main Simulation View -->
+      <div class="sim-container">
+        <canvas id="simCanvas"></canvas>
+      </div>
+
+      <!-- Right Sidebar Accordion -->
+      <aside class="dashboard right-sidebar">
+
+        <!-- Crane Operator -->
+        <div class="accordion-panel">
+          <div class="accordion-header" style="cursor: default;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="drag-icon">⋮⋮</span> Crane Operator
+            </div>
+          </div>
+          <div class="accordion-content">
+            <button id="btnAnomalyToggle" class="btn warning-btn" style="border: 2px solid #555; background: #222; color: #aaa; margin-bottom:8px; width: 100%;">Anomaly Mode: OFF</button>
+            <button id="btnGoAhead" class="btn" style="display:none; background: rgba(0,200,80,0.15); color: #00c850; border: 2px solid #00c850; margin-bottom:10px; width:100%; font-weight: bold; font-size: 1rem;">✅ GO AHEAD — Resume Conveyor</button>
+            <button id="btnPickBay1" class="btn">Pick Bay 1</button>
+            <button id="btnPickBay2" class="btn">Pick Bay 2</button>
+            <button id="btnPickBay3" class="btn">Pick Bay 3</button>
+            <button id="btnPickBay4" class="btn">Pick Bay 4</button>
+            <button id="btnPickBay5" class="btn">Pick Bay 5</button>
+
+            <!-- ── Sequence Planner ──────────────────────────────── -->
+            <div id="sequencePlanner" style="margin-top:14px; border-top:1px solid #333; padding-top:10px;">
+              <div style="font-size:0.72rem; color:#00ff88; letter-spacing:1.5px; margin-bottom:8px; font-weight:600;">⚙ SEQUENCE PLANNER</div>
+
+              <!-- Custom Routing Selectors -->
+              <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <select id="seqSourceBay" class="btn" style="flex:1; background:#0a0a0a; border:1px solid #1a3a1a; color:#00ff88; cursor:pointer;">
+                  <option value="0">Bay 1</option>
+                  <option value="1">Bay 2</option>
+                  <option value="2">Bay 3</option>
+                  <option value="3">Bay 4</option>
+                  <option value="4">Bay 5</option>
+                </select>
+                <div style="color:#00ff88; align-self:center; font-size:1.1rem; font-weight:bold;">➔</div>
+                <select id="seqTargetBin" class="btn" style="flex:1.5; background:#0a0a0a; border:1px solid #1a3a1a; color:#00ff88; cursor:pointer;">
+                  <!-- 15 Options generated in JS -->
+                </select>
+              </div>
+              
+              <button id="btnSeqAdd" class="btn" style="width:100%; margin-bottom:12px; background:#0a0a0a; border-color:#1a3a1a; color:#00ff88;">+ Add to Sequence</button>
+
+              <!-- Live preview -->
+              <div style="font-size:0.7rem; color:#888; margin-bottom:3px;">Planned sequence:</div>
+              <div id="seqPreview" style="
+                font-size:0.8rem; color:#00ff88; min-height:22px;
+                background:#0a0a0a; border:1px solid #1a3a1a; border-radius:4px;
+                padding:4px 8px; margin-bottom:8px; word-break:break-word; letter-spacing:1px;
+              ">— select route above —</div>
+
+              <!-- Action buttons -->
+              <div style="display:flex; gap:6px; margin-bottom:6px;">
+                <button id="btnSeqStart" class="btn" style="flex:1; background:rgba(0,255,136,0.1); color:#00ff88; border-color:#00ff88; font-weight:bold;">▶ Start Sequence</button>
+                <button id="btnSeqClear" class="btn" style="flex:0 0 auto; background:#1a1a1a; color:#888; border-color:#444; padding:0 10px;">✕</button>
+              </div>
+
+              <!-- Status while running -->
+              <div id="seqStatus" style="font-size:0.7rem; color:#ffa500; display:none; margin-top:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Virtual Sensors -->
+        <div class="accordion-panel">
+          <div class="accordion-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="drag-icon">⋮⋮</span> Virtual Sensors
+            </div>
+            <button class="toggle-btn accordion-btn">+</button>
+          </div>
+          <div class="accordion-content collapsed">
+            <div class="sensor-list">
+              <div class="sensor-item">
+                <div class="led inactive" id="sensor-LoadCell"></div>
+                <span>Load Cell (Hoist)</span>
+              </div>
+              <div class="sensor-item">
+                <div class="led inactive" id="sensor-BreakBeam"></div>
+                <span>Break-Beam (Conv)</span>
+              </div>
+              <div class="sensor-item">
+                <div class="led inactive" id="sensor-WeightSensor"></div>
+                <span>Weight (Verify Zone)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vision Analysis -->
+        <div class="accordion-panel" style="border-left: 2px solid #00ff88;">
+          <div class="accordion-header" style="color: #00ff88;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="drag-icon" style="color:#00ff88;">⋮⋮</span> Vision System
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="led inactive" id="sensor-ScannerActive"></span>
+              <button class="toggle-btn accordion-btn">+</button>
+            </div>
+          </div>
+          <div class="accordion-content collapsed">
+            <div class="sensor-list" style="margin-top: 10px;">
+              <div class="sensor-item" style="border-bottom: 1px solid #333; padding-bottom: 5px;">
+                <span><strong>Material:</strong></span>
+                <span id="visItemType">Pending...</span>
+              </div>
+              <div class="sensor-item" style="border-bottom: 1px solid #333; padding-bottom: 5px;">
+                <span><strong>Est. Volume:</strong></span>
+                <span id="visVolume">-- m³</span>
+              </div>
+              <div class="sensor-item" style="border-bottom: 1px solid #333; padding-bottom: 5px;">
+                <span><strong>Purity:</strong></span>
+                <span id="visPurity">-- %</span>
+              </div>
+              <div class="sensor-item" style="border-bottom: 1px solid #333; padding-bottom: 5px;">
+                <span><strong>Particle Count:</strong></span>
+                <span id="visParticles">--</span>
+              </div>
+              <div class="sensor-item">
+                <span><strong>Temperature:</strong></span>
+                <span id="visTemp">-- °C</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Events -->
+        <div class="accordion-panel">
+          <div class="accordion-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="drag-icon">⋮⋮</span> System Events
+            </div>
+            <button class="toggle-btn accordion-btn">+</button>
+          </div>
+          <div class="accordion-content collapsed" style="flex: 1; flex-direction: column; overflow: hidden; min-height: 250px;">
+            <div class="log-container" id="eventLogs" style="flex: 1; height: 100%;">
+              <!-- Logs will be populated here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="accordion-panel">
+          <div class="accordion-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="drag-icon">⋮⋮</span> Metrics
+            </div>
+            <button class="toggle-btn accordion-btn">+</button>
+          </div>
+          <div class="accordion-content collapsed">
+            <div class="sensor-list">
+              <div class="sensor-item">
+                <span style="font-size: 1.2rem;">⏱️</span>
+                <span><strong id="metric-time">-- s</strong></span>
+              </div>
+              <div class="sensor-item">
+                <span style="font-size: 1.2rem;">📏</span>
+                <span><strong id="metric-distance">-- m</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+    <script type="module" src="/src/vision.ts"></script>
+</body>
+
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flux Warehouse — Dual View</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #0a0c12;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── TOP HEADER ─────────────────────── */
+    .dual-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 46px;
+      padding: 0 20px;
+      background: linear-gradient(90deg, #0d1117 0%, #131a2a 100%);
+      border-bottom: 1px solid #1e2d42;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .dual-header .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #e2e8f0;
+    }
+
+    .dual-header .logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00ff88;
+      box-shadow: 0 0 8px #00ff88;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    .dual-header .badges {
+      display: flex;
+      gap: 20px;
+    }
+
+    .view-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    .view-badge.gps  { color: #60a5fa; background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); }
+    .view-badge.vis  { color: #00ff88; background: rgba(0,255,136,0.1);   border: 1px solid rgba(0,255,136,0.3); }
+
+    .view-badge .led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .view-badge.gps .led { background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
+    .view-badge.vis .led { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+
+    /* ── LABEL BAR ─────────────────────── */
+    .label-bar {
+      display: flex;
+      height: 32px;
+      flex-shrink: 0;
+    }
+
+    .label-bar .panel-label {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .label-bar .panel-label.gps {
+      background: rgba(96,165,250,0.08);
+      border-bottom: 2px solid rgba(96,165,250,0.5);
+      color: #60a5fa;
+    }
+
+    .label-bar .panel-label.vis {
+      background: rgba(0,255,136,0.06);
+      border-bottom: 2px solid rgba(0,255,136,0.5);
+      color: #00ff88;
+    }
+
+    /* ── FRAMES ROW ─────────────────────── */
+    .frames-row {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      gap: 0;
+    }
+
+    .frame-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .frame-wrapper iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* vertical divider */
+    .divider {
+      width: 3px;
+      background: linear-gradient(180deg, transparent 0%, #1e2d42 20%, #1e2d42 80%, transparent 100%);
+      flex-shrink: 0;
+      cursor: col-resize;
+      transition: background 0.2s;
+    }
+
+    .divider:hover, .divider.dragging {
+      background: linear-gradient(180deg, transparent 0%, #60a5fa 20%, #60a5fa 80%, transparent 100%);
+    }
+
+    /* outer shell stacks header + label-bar + frames */
+    .shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* sync label inside label-bar should span both */
+    .label-bar .divider-gap {
+      width: 3px;
+      flex-shrink: 0;
+      background: #0a0c12;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <!-- Header -->
+    <div class="dual-header">
+      <div class="logo">
+        <span class="dot"></span>
+        FLUX WAREHOUSE &nbsp;·&nbsp; DUAL MONITOR VIEW
+      </div>
+      <div class="badges">
+        <span class="view-badge gps"><span class="led"></span> GPS / Main Sim</span>
+        <span class="view-badge vis"><span class="led"></span> Vision Scanner</span>
+      </div>
+    </div>
+
+    <!-- Tab labels -->
+    <div class="label-bar">
+      <div class="panel-label gps">🛰 GPS — Crane &amp; Navigation</div>
+      <div class="divider-gap"></div>
+      <div class="panel-label vis">👁 Vision — Material Scanner</div>
+    </div>
+
+    <!-- Two iframes side-by-side -->
+    <div class="frames-row" id="framesRow">
+      <div class="frame-wrapper" id="leftPane">
+        <iframe src="/index.html" id="gpsFrame" title="GPS Main Sim"></iframe>
+      </div>
+
+      <div class="divider" id="divider"></div>
+
+      <div class="frame-wrapper" id="rightPane">
+        <iframe src="/vision.html" id="visionFrame" title="Vision Scanner"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Resizable divider ────────────────────────────────────────────
+    const divider  = document.getElementById('divider');
+    const leftPane  = document.getElementById('leftPane');
+    const rightPane = document.getElementById('rightPane');
+    const row       = document.getElementById('framesRow');
+
+    let dragging = false;
+
+    divider.addEventListener('mousedown', (e) => {
+      dragging = true;
+      divider.classList.add('dragging');
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const rowRect = row.getBoundingClientRect();
+      const totalW  = rowRect.width - 3; // 3px divider
+      let leftW = e.clientX - rowRect.left;
+      leftW = Math.max(200, Math.min(leftW, totalW - 200));
+      const pct = (leftW / rowRect.width) * 100;
+      leftPane.style.flex  = `0 0 ${pct}%`;
+      rightPane.style.flex = `0 0 calc(${100 - pct}% - 3px)`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (dragging) {
+        dragging = false;
+        divider.classList.remove('dragging');
+      }
+    });
+  </script>
+</body>
+
+</html>
